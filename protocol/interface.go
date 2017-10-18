@@ -1,12 +1,12 @@
 package protocol
 
-import "io"
-
 type Reader interface {
-	Start(io.ReadWriter) // buffer pool
-	ItemDone(ItemDone)
-	FileHandler(FileHandler)
-	FolderHandler(FolderHandler)
+	ReadMessage() error
+}
+
+type ReaderCallbacks struct {
+	File   FileHandler
+	Folder FolderHandler
 }
 
 type FileHandler func(File)
@@ -24,9 +24,4 @@ type Folder struct {
 	Id       int
 	ParentId int
 	Name     string
-}
-
-type ItemDone struct {
-	Id   int
-	SfId string
 }
