@@ -2,8 +2,20 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/zmj/sf-ingest/server"
 )
 
 func main() {
-	fmt.Println("hello world")
+	session, err := server.NewSession(9284)
+	if err != nil {
+		fmt.Printf("Error making server: %v\n", err)
+		return
+	}
+	err = session.ListenOne()
+	if err != nil {
+		fmt.Printf("Error receiving msg: %v\n", err)
+		return
+	}
+	fmt.Println("yay")
 }

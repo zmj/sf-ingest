@@ -7,26 +7,24 @@ import (
 	"io"
 )
 
-func NewReader(conn io.Reader, cb ReaderCallbacks) Interface {
+func NewReader(rdr io.Reader, cb ReaderCallbacks) Reader {
 	return &reader{
-		conn:          conn,
-		fileHandler:   cb.File,
-		folderHandler: cb.Folder,
-		msgBuffer:     make([]byte, 4096),
+		ReaderCallbacks: cb,
+		rdr:             rdr,
+		msgBuffer:       make([]byte, 4096),
 	}
 }
 
 type reader struct {
-	conn          io.Reader
-	fileHandler   FileHandler
-	folderHandler FolderHandler
-	msgBuffer     []byte
+	ReaderCallbacks
+	rdr       io.Reader
+	msgBuffer []byte
 }
 
 func (r *reader) ReadMessage() error {
 	msg, err := r.readMsg()
 	if err != nil {
-		break
+		return fmt.Errorf("Failed to read message: %v", err)
 	}
 
 	var file File
@@ -34,14 +32,14 @@ func (r *reader) ReadMessage() error {
 	if err == nil {
 		c := make(chan []byte) // buffer by num blocks
 		file.Content = c
-		go r.fileHandler(file)
+		go r.FileHandler(file)
 		return r.readContent(file.Size, c)
 	}
 
 	var folder Folder
 	err = json.Unmarshal(msg, &folder)
 	if err == nil {
-		go r.folderHandler(folder)
+		go r.FolderHandler(folder)
 		return nil
 	}
 
@@ -58,7 +56,7 @@ func (r *reader) readMsg() ([]byte, error) {
 		return nil, fmt.Errorf("Message size %v exceeds buffer size %v", size, bufLen)
 	}
 	buf := r.msgBuffer[:size]
-	_, err = io.ReadFull(r.conn, buf)
+	_, err = io.ReadFull(r.rdr, buf)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read message: %v", err)
 	}
@@ -67,7 +65,7 @@ func (r *reader) readMsg() ([]byte, error) {
 
 func (r *reader) readMsgSize() (uint16, error) {
 	var size uint16
-	err := binary.Read(r.conn, binary.BigEndian, &size)
+	err := binary.Read(r.rdr, binary.BigEndian, &size)
 	return size, err
 }
 
@@ -75,7 +73,7 @@ func (r *reader) readContent(n uint64, c chan<- []byte) error {
 	var read uint64
 	for read < n {
 		buf := make([]byte, 4096) // buffer pool
-		_, err := io.ReadFull(r.conn, buf)
+		_, err := io.ReadFull(r.rdr, buf)
 		if err != nil {
 			return fmt.Errorf("Failed to read content block: %v", err)
 		}

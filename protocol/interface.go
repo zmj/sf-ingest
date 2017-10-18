@@ -5,23 +5,25 @@ type Reader interface {
 }
 
 type ReaderCallbacks struct {
-	File   FileHandler
-	Folder FolderHandler
+	FileHandler   FileHandler
+	FolderHandler FolderHandler
 }
 
 type FileHandler func(File)
 type FolderHandler func(Folder)
 
 type File struct {
-	Id       int
-	ParentId int
-	Name     string
-	Size     uint64
-	Content  <-chan []byte
+	Item
+	Size    uint64
+	Content <-chan []byte
 }
 
 type Folder struct {
-	Id       int
-	ParentId int
+	Item
+}
+
+type Item struct {
+	ID       int
+	ParentID int
 	Name     string
 }
