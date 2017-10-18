@@ -2,9 +2,9 @@ package protocol
 
 import "io"
 
-type Interface interface {
-	Start(io.ReadWriteCloser) // buffer pool
-	ItemDone(int)
+type Reader interface {
+	Start(io.ReadWriter) // buffer pool
+	ItemDone(ItemDone)
 	FileHandler(FileHandler)
 	FolderHandler(FolderHandler)
 }
@@ -16,7 +16,7 @@ type File struct {
 	Id       int
 	ParentId int
 	Name     string
-	Size     int64
+	Size     uint64
 	Content  <-chan []byte
 }
 
@@ -24,4 +24,9 @@ type Folder struct {
 	Id       int
 	ParentId int
 	Name     string
+}
+
+type ItemDone struct {
+	Id   int
+	SfId string
 }
