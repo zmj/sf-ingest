@@ -29,9 +29,12 @@ func (s *Session) ListenOne() error {
 }
 
 func (s *Session) fileHandler(file protocol.File) {
-
+	fmt.Printf("file %v\n", file.Name)
+	for b := range file.Content {
+		fmt.Printf("content %v\n", b)
+	}
 }
 
 func (s *Session) folderHandler(folder protocol.Folder) {
-
+	fmt.Println("folder")
 }

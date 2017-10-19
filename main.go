@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/zmj/sf-ingest/server"
 )
@@ -18,4 +19,5 @@ func main() {
 		return
 	}
 	fmt.Println("yay")
+	time.Sleep(time.Second)
 }

@@ -22,7 +22,7 @@ type reader struct {
 }
 
 func (r *reader) ReadMessage() error {
-	msg, err := r.readMsg()
+	msg, err := r.readMsgBytes()
 	if err != nil {
 		return fmt.Errorf("Failed to read message: %v", err)
 	}
@@ -46,7 +46,7 @@ func (r *reader) ReadMessage() error {
 	return fmt.Errorf("Unknown message type")
 }
 
-func (r *reader) readMsg() ([]byte, error) {
+func (r *reader) readMsgBytes() ([]byte, error) {
 	size, err := r.readMsgSize()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read message size: %v", err)
@@ -70,9 +70,18 @@ func (r *reader) readMsgSize() (uint16, error) {
 }
 
 func (r *reader) readContent(n uint64, c chan<- []byte) error {
+	defer close(c)
+	if n == 0 {
+		return nil
+	}
 	var read uint64
 	for read < n {
-		buf := make([]byte, 4096) // buffer pool
+		var toRead uint64 = 4096
+		if n-read < toRead {
+			toRead = n - read
+		}
+		buf := make([]byte, toRead) // buffer pool
+
 		_, err := io.ReadFull(r.rdr, buf)
 		if err != nil {
 			return fmt.Errorf("Failed to read content block: %v", err)

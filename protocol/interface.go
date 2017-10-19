@@ -23,7 +23,7 @@ type Folder struct {
 }
 
 type Item struct {
-	ID       int
-	ParentID int
+	ID       uint
+	ParentID uint
 	Name     string
 }
