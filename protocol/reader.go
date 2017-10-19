@@ -60,7 +60,7 @@ func (r *reader) readFile(file File) error {
 func (r *reader) readMsg(msgTypes ...interface{}) (interface{}, error) {
 	bytes, err := r.readMsgBytes()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read message content: %v", err)
+		return nil, fmt.Errorf("Failed to read message: %v", err)
 	}
 	for _, msg := range msgTypes {
 		err = json.Unmarshal(bytes, msg)
@@ -68,7 +68,7 @@ func (r *reader) readMsg(msgTypes ...interface{}) (interface{}, error) {
 			return msg, nil
 		}
 	}
-	return nil, fmt.Errorf("Unable to parse message")
+	return nil, fmt.Errorf("Failed to parse message: %v", bytes)
 }
 
 func (r *reader) readMsgBytes() ([]byte, error) {
@@ -83,7 +83,7 @@ func (r *reader) readMsgBytes() ([]byte, error) {
 	buf := r.msgBuffer[:size]
 	_, err = io.ReadFull(r.rdr, buf)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read message: %v", err)
+		return nil, fmt.Errorf("Failed to read message content: %v", err)
 	}
 	return buf, nil
 }
