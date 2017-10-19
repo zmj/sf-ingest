@@ -42,7 +42,7 @@ func (srv *Server) acceptAndServe() error {
 	if err != nil {
 		return fmt.Errorf("Connection failed: %v", err)
 	}
-	session := session{conn}
+	session := newSession(conn)
 	go session.serve()
 	return nil
 }

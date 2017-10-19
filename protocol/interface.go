@@ -27,3 +27,17 @@ type Item struct {
 	ParentID uint
 	Name     string
 }
+
+type Writer interface {
+	ItemDone(ItemDone) error
+	Error(Error) error
+}
+
+type ItemDone struct {
+	ID   uint
+	SfID string
+}
+
+type Error struct {
+	Message string
+}
