@@ -2,22 +2,15 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/zmj/sf-ingest/server"
 )
 
 func main() {
-	session, err := server.NewSession(9284)
+	srv := server.Server{}
+	err := srv.ListenAndServe()
 	if err != nil {
-		fmt.Printf("Error making server: %v\n", err)
-		return
+		fmt.Printf("dead: %v\n", err)
 	}
-	err = session.ListenOne()
-	if err != nil {
-		fmt.Printf("Error receiving msg: %v\n", err)
-		return
-	}
-	fmt.Println("yay")
-	time.Sleep(time.Second)
+	fmt.Println("done")
 }

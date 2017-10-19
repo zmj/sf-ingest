@@ -1,7 +1,7 @@
 package protocol
 
 type Reader interface {
-	ReadMessage() error
+	ReadAll() error
 }
 
 type ReaderCallbacks struct {

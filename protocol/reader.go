@@ -21,29 +21,54 @@ type reader struct {
 	msgBuffer []byte
 }
 
-func (r *reader) ReadMessage() error {
-	msg, err := r.readMsgBytes()
+func (r *reader) ReadAll() error {
+	var err error // read auth msg
+	for err == nil {
+		err = r.readNext()
+	}
+	return err
+}
+
+func (r *reader) readNext() error {
+	msg, err := r.readMsg(&File{}, &Folder{})
 	if err != nil {
 		return fmt.Errorf("Failed to read message: %v", err)
 	}
 
-	var file File
-	err = json.Unmarshal(msg, &file)
-	if err == nil {
-		c := make(chan []byte) // buffer by num blocks
-		file.Content = c
-		go r.FileHandler(file)
-		return r.readContent(file.Size, c)
+	if file, ok := msg.(*File); ok {
+		return r.readFile(*file)
 	}
-
-	var folder Folder
-	err = json.Unmarshal(msg, &folder)
-	if err == nil {
-		go r.FolderHandler(folder)
+	if folder, ok := msg.(*Folder); ok {
+		go r.FolderHandler(*folder)
 		return nil
 	}
+	return fmt.Errorf("Unexpected message type")
+}
 
-	return fmt.Errorf("Unknown message type")
+func (r *reader) readFile(file File) error {
+	c := make(chan []byte) // buffer by num blocks
+	file.Content = c
+	go r.FileHandler(file)
+	err := r.readContent(file.Size, c)
+	if err != nil {
+		return fmt.Errorf("Failed to read content for file %v %v: %v", file.ID, file.Name, err)
+	}
+	// read checksum
+	return nil
+}
+
+func (r *reader) readMsg(msgTypes ...interface{}) (interface{}, error) {
+	bytes, err := r.readMsgBytes()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read message content: %v", err)
+	}
+	for _, msg := range msgTypes {
+		err = json.Unmarshal(bytes, msg)
+		if err == nil {
+			return msg, nil
+		}
+	}
+	return nil, fmt.Errorf("Unable to parse message")
 }
 
 func (r *reader) readMsgBytes() ([]byte, error) {
