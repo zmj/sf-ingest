@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net"
 )
@@ -42,7 +43,10 @@ func (srv *Server) acceptAndServe() error {
 	if err != nil {
 		return fmt.Errorf("Connection failed: %v", err)
 	}
-	session := newSession(conn)
-	go session.serve()
+	go func() {
+		session := newSession(conn)
+		session.serve(context.TODO())
+		conn.Close()
+	}()
 	return nil
 }

@@ -8,43 +8,43 @@ import (
 	"math"
 )
 
-func NewWriter(wr io.Writer) Writer {
-	return &writer{
+func NewSender(wr io.Writer) Sender {
+	return &sender{
 		wr: wr,
 	}
 }
 
-type writer struct {
+type sender struct {
 	wr io.Writer
 }
 
-func (w *writer) writeMsg(msg interface{}) error {
+func (s *sender) writeMsg(msg interface{}) error {
 	bytes, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("Failed to serialize message: %v", err)
 	}
-	err = w.writeMsgSize(len(bytes))
+	err = s.writeMsgSize(len(bytes))
 	if err != nil {
 		return fmt.Errorf("Failed to write message size: %v", err)
 	}
-	_, err = w.wr.Write(bytes)
+	_, err = s.wr.Write(bytes)
 	if err != nil {
 		return fmt.Errorf("Failed to write message content: %v", err)
 	}
 	return nil
 }
 
-func (w *writer) writeMsgSize(size int) error {
+func (s *sender) writeMsgSize(size int) error {
 	if size > math.MaxUint16 {
 		return fmt.Errorf("Message size %v > max %v", size, math.MaxUint16)
 	}
-	return binary.Write(w.wr, binary.BigEndian, uint16(size))
+	return binary.Write(s.wr, binary.BigEndian, uint16(size))
 }
 
-func (w *writer) ItemDone(itemDone ItemDone) error {
-	return w.writeMsg(itemDone)
+func (s *sender) ItemDone(itemDone ItemDone) error {
+	return s.writeMsg(itemDone)
 }
 
-func (w *writer) Error(err Error) error {
-	return w.writeMsg(err)
+func (s *sender) ServerError(err ServerError) error {
+	return s.writeMsg(err)
 }

@@ -1,16 +1,11 @@
 package protocol
 
-type Reader interface {
+type Receiver interface {
 	ReadAll() error
+	SfAuth() <-chan SfAuth
+	Files() <-chan File
+	Folders() <-chan Folder
 }
-
-type ReaderCallbacks struct {
-	FileHandler   FileHandler
-	FolderHandler FolderHandler
-}
-
-type FileHandler func(File)
-type FolderHandler func(Folder)
 
 type File struct {
 	Item
@@ -20,6 +15,7 @@ type File struct {
 
 type Folder struct {
 	Item
+	SfID string
 }
 
 type Item struct {
@@ -28,9 +24,14 @@ type Item struct {
 	Name     string
 }
 
-type Writer interface {
+type SfAuth struct {
+	Host   string
+	AuthID string
+}
+
+type Sender interface {
 	ItemDone(ItemDone) error
-	Error(Error) error
+	ServerError(ServerError) error
 }
 
 type ItemDone struct {
@@ -38,6 +39,6 @@ type ItemDone struct {
 	SfID string
 }
 
-type Error struct {
+type ServerError struct {
 	Message string
 }

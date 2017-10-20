@@ -7,21 +7,28 @@ import (
 	"io"
 )
 
-func NewReader(rdr io.Reader, cb ReaderCallbacks) Reader {
-	return &reader{
-		ReaderCallbacks: cb,
-		rdr:             rdr,
-		msgBuffer:       make([]byte, 4096),
+func NewReader(rdr io.Reader) Receiver {
+	return &receiver{
+		rdr:       rdr,
+		sfAuth:    make(chan SfAuth),
+		files:     make(chan File),
+		folders:   make(chan Folder),
+		msgBuffer: make([]byte, 4096),
 	}
 }
 
-type reader struct {
-	ReaderCallbacks
+type receiver struct {
 	rdr       io.Reader
 	msgBuffer []byte
+	sfAuth    chan SfAuth
+	files     chan File
+	folders   chan Folder
 }
 
-func (r *reader) ReadAll() error {
+func (r *receiver) ReadAll() error {
+	defer close(r.sfAuth)
+	defer close(r.files)
+	defer close(r.folders)
 	var err error // read auth msg
 	for err == nil {
 		err = r.readNext()
@@ -29,7 +36,7 @@ func (r *reader) ReadAll() error {
 	return err
 }
 
-func (r *reader) readNext() error {
+func (r *receiver) readNext() error {
 	msg, err := r.readMsg(&File{}, &Folder{})
 	if err != nil {
 		return fmt.Errorf("Failed to read message: %v", err)
@@ -39,16 +46,16 @@ func (r *reader) readNext() error {
 		return r.readFile(*file)
 	}
 	if folder, ok := msg.(*Folder); ok {
-		go r.FolderHandler(*folder)
+		r.folders <- *folder
 		return nil
 	}
 	return fmt.Errorf("Unexpected message type")
 }
 
-func (r *reader) readFile(file File) error {
+func (r *receiver) readFile(file File) error {
 	c := make(chan []byte) // buffer by num blocks
 	file.Content = c
-	go r.FileHandler(file)
+	r.files <- file
 	err := r.readContent(file.Size, c)
 	if err != nil {
 		return fmt.Errorf("Failed to read content for file %v %v: %v", file.ID, file.Name, err)
@@ -57,7 +64,7 @@ func (r *reader) readFile(file File) error {
 	return nil
 }
 
-func (r *reader) readMsg(msgTypes ...interface{}) (interface{}, error) {
+func (r *receiver) readMsg(msgTypes ...interface{}) (interface{}, error) {
 	bytes, err := r.readMsgBytes()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read message: %v", err)
@@ -71,7 +78,7 @@ func (r *reader) readMsg(msgTypes ...interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("Failed to parse message: %v", bytes)
 }
 
-func (r *reader) readMsgBytes() ([]byte, error) {
+func (r *receiver) readMsgBytes() ([]byte, error) {
 	size, err := r.readMsgSize()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read message size: %v", err)
@@ -88,13 +95,13 @@ func (r *reader) readMsgBytes() ([]byte, error) {
 	return buf, nil
 }
 
-func (r *reader) readMsgSize() (uint16, error) {
+func (r *receiver) readMsgSize() (uint16, error) {
 	var size uint16
 	err := binary.Read(r.rdr, binary.BigEndian, &size)
 	return size, err
 }
 
-func (r *reader) readContent(n uint64, c chan<- []byte) error {
+func (r *receiver) readContent(n uint64, c chan<- []byte) error {
 	defer close(c)
 	if n == 0 {
 		return nil
@@ -115,4 +122,16 @@ func (r *reader) readContent(n uint64, c chan<- []byte) error {
 		read += uint64(len(buf))
 	}
 	return nil
+}
+
+func (r *receiver) SfAuth() <-chan SfAuth {
+	return r.sfAuth
+}
+
+func (r *receiver) Files() <-chan File {
+	return r.files
+}
+
+func (r *receiver) Folders() <-chan Folder {
+	return r.folders
 }
