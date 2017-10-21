@@ -1,0 +1,59 @@
+
+POST https://sfsync.sf-api.com/sf/v3/Items(fode5641-4200-4eba-945c-2780ea194e59)/Upload2?expirationDays= HTTP/1.1
+User-Agent: NET Client SDK/3.4.0.0
+X-SFAPI-Tool: SF Client SDK
+X-SFAPI-ToolVersion: 3.4.0.0
+Accept: application/json
+Content-Type: application/json
+Host: sfsync.sf-api.com
+Cookie: SFAPI_SRVNAME=i-06a6803ed049ccfba; SFAPI_AuthID=dd0df2f5-ed96-46be-85c6-92495ae83a8c
+Content-Length: 227
+Expect: 100-continue
+Accept-Encoding: gzip, deflate
+
+{"Method":"Standard","Raw":true,"FileName":"alphabet.txt","FileSize":26,"BatchLast":false,"CanResume":false,"StartOver":false,"Unzip":false,"Overwrite":false,"Tool":"SF Client SDK","IsSend":false,"Notify":false,"ThreadCount":1}
+
+HTTP/1.1 200 OK
+Cache-Control: no-cache
+Pragma: no-cache
+Content-Type: application/json; charset=utf-8
+Content-Language: en-US
+Expires: -1
+Vary: Accept-Encoding
+Server: Microsoft-IIS/8.5
+X-SFAPI-RequestID: 636441870412174309
+Set-Cookie: SFAPI_AuthID=dd0df2f5-ed96-46be-85c6-92495ae83a8c; domain=sfsync.sf-api.com; path=/; secure; HttpOnly
+X-Robots-Tag: noindex
+Date: Sat, 21 Oct 2017 16:50:40 GMT
+Content-Length: 1403
+X-SF-Server: api_ssl_v3/i-06a6803ed049ccfba_172.16.97.219_us-east-1b
+Strict-Transport-Security: max-age=16000000; includeSubDomains; preload;
+
+{"Method":"Standard","ChunkUri":"https://storage-ec2-906.sharefile.com/upload.aspx?uploadid=598d3ba4-f1bf-42b0-852e-ca07b3c12623&tool=SF+Client+SDK&batchid=9f1e5c8c-ce4b-45b7-92f6-8e9de8dbb5ea&filename=alphabet.txt&raw=1&encparams=l3whVoXP7iSj8LUbzrJnfbtgXb8q_igfZIbIaH_nwabigo74R8OJ54jeM_QchnhPADT2Wa3t6BkSf_pmgb3Jae0GZyQdlRbH-3vUdXRIGROAYvYnZEEIgAE_zZ-XAMTIciCS1XFC0eIgLSEb58SxVu35fonNsjA4OXIJqsP3z0765IpUePkV5yogLDDMKZA6kN2sSA0vtUlHHJVBDLpFxdoX7bv2pbyM4SjEbXdKWMF2MZ_8dCGpIj_T2QYgg53fsA_0IRVknOHPapQWfooBxg94rLVEKnBga_PXfNCt7HlYhPK86MBzt2oOwC0A9Zac3jF2OK1SrDvUYr6j3tihqu9Lab5adjlMVO3u_HnKkP4yCE6Zj0fHcFerZ-72KrXb_BtdxOeuTbPHhDPQQcWxnww6nXoOsbz-AdlOf2FRXoFx3IYjyHXRmntWrrzry9ernS0nzVhC5zd20J7Rdvd1DWGLo80ejaxOHwED90dtPT3IQdEL-xql-NvqKSchHSsoKX4P86YVJ3pyIhVQvqQU_0W_nWlBU87zPy5GkXbp8za0x4Rv71YrRSKbmG_a2q7DGqF2gI4XKBHrU_j-TnwqmC4fOAHIqTQzXj0c&h=abgFs1yyxLvT%2bXN3LWuxTPPPeV9FQSXrXeBYI5Rcd1Q%3d","ProgressData":"598d3ba4-f1bf-42b0-852e-ca07b3c12623%2chttps%3a%2f%2fstorage-ec2-906.sharefile.com%2fuploadstatus.ashx%2cAmazon-Standard%2czpfed2b3f5-fbbf-4ed5-9a58-f1bd888f01%2c9G2svWJIkDFHrBR9a%2fuNx8Xpj21GAVpPzPKTdjJkPZ4%3d","IsResume":false,"ResumeIndex":0,"ResumeOffset":0,"ResumeFileHash":"","MaxNumberOfThreads":4,"odata.metadata":"https://sfsync.sf-api.com/sf/v3/$metadata#UploadSpecification/ShareFile.Api.Models.UploadSpecification@Element","odata.type":"ShareFile.Api.Models.UploadSpecification"}
+
+POST https://storage-ec2-906.sharefile.com/upload.aspx?uploadid=598d3ba4-f1bf-42b0-852e-ca07b3c12623&tool=SF+Client+SDK&batchid=9f1e5c8c-ce4b-45b7-92f6-8e9de8dbb5ea&filename=alphabet.txt&raw=1&encparams=l3whVoXP7iSj8LUbzrJnfbtgXb8q_igfZIbIaH_nwabigo74R8OJ54jeM_QchnhPADT2Wa3t6BkSf_pmgb3Jae0GZyQdlRbH-3vUdXRIGROAYvYnZEEIgAE_zZ-XAMTIciCS1XFC0eIgLSEb58SxVu35fonNsjA4OXIJqsP3z0765IpUePkV5yogLDDMKZA6kN2sSA0vtUlHHJVBDLpFxdoX7bv2pbyM4SjEbXdKWMF2MZ_8dCGpIj_T2QYgg53fsA_0IRVknOHPapQWfooBxg94rLVEKnBga_PXfNCt7HlYhPK86MBzt2oOwC0A9Zac3jF2OK1SrDvUYr6j3tihqu9Lab5adjlMVO3u_HnKkP4yCE6Zj0fHcFerZ-72KrXb_BtdxOeuTbPHhDPQQcWxnww6nXoOsbz-AdlOf2FRXoFx3IYjyHXRmntWrrzry9ernS0nzVhC5zd20J7Rdvd1DWGLo80ejaxOHwED90dtPT3IQdEL-xql-NvqKSchHSsoKX4P86YVJ3pyIhVQvqQU_0W_nWlBU87zPy5GkXbp8za0x4Rv71YrRSKbmG_a2q7DGqF2gI4XKBHrU_j-TnwqmC4fOAHIqTQzXj0c&h=abgFs1yyxLvT%2bXN3LWuxTPPPeV9FQSXrXeBYI5Rcd1Q%3d&fmt=json HTTP/1.1
+User-Agent: NET Client SDK/3.4.0.0
+X-SFAPI-Tool: SF Client SDK
+X-SFAPI-ToolVersion: 3.4.0.0
+Content-Type: application/octet-stream
+Host: storage-ec2-906.sharefile.com
+Content-Length: 26
+Expect: 100-continue
+
+abcdefghijklmnopqrstuvwxyz
+
+HTTP/1.1 200 OK
+Cache-Control: private
+Content-Length: 277
+Content-Type: application/json; charset=utf-8
+Server: Microsoft-IIS/8.5
+X-AspNet-Version: 4.0.30319
+Access-Control-Allow-Origin: *
+Access-Control-Max-Age: 3628800
+Access-Control-Allow-Headers: content-type
+Access-Control-Allow-Methods: OPTIONS, TRACE, GET, HEAD, POST
+Date: Sat, 21 Oct 2017 16:50:42 GMT
+X-SF-Server: storageCenter_HTTP/i-0843df5e5b16bac2d_172.16.97.215_us-east-1b
+Strict-Transport-Security: max-age=16000000; includeSubDomains; preload;
+
+{"error":false,"value":[{"uploadid":"598d3ba4-f1bf-42b0-852e-ca07b3c12623","parentid":"fode5641-4200-4eba-945c-2780ea194e59","id":"fi32ed21-7ee5-7a44-8f44-495fea259078","filename":"alphabet.txt","displayname":"alphabet.txt","size":26,"md5":"c3fcd3d76192e4007dfb496cca67e13b"}]}
