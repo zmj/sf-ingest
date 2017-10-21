@@ -93,7 +93,8 @@ func (s *session) addLazySfID(id uint) *lazySfID {
 func (s *session) startFileUpload(ctx context.Context, file protocol.File) {
 	parentSfID := s.addLazySfID(file.ParentID)
 	go func() {
-		sfID, err := s.uploader.CreateFile(ctx, parentSfID.getValue(), file.Name, upload.Content{file.Size, file.Content})
+		content := upload.Content{Size: file.Size, Bytes: file.Content}
+		sfID, err := s.uploader.CreateFile(ctx, parentSfID.getValue(), file.Name, content)
 		s.uploadResults <- uploadResult{file.ID, sfID, err}
 	}()
 }

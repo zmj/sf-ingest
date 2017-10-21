@@ -60,7 +60,7 @@ func (u *uploader) CreateFile(ctx context.Context, parentSfID, name string, cont
 		return "", fmt.Errorf("Upload API call failed: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", us.ChunkURI, content.reader())
+	req, err := http.NewRequest("POST", us.ChunkURI, &content)
 	if err != nil {
 		return "", fmt.Errorf("Create upload httpReq failed: %v", err)
 	}
@@ -140,6 +140,20 @@ func (u *uploader) doApiPost(url string, body, expectedResp interface{}) error {
 	return nil
 }
 
-func (c *Content) reader() io.Reader {
-	return nil
+func (c *Content) Read(dst []byte) (int, error) {
+	read := 0
+	for len(dst) > 0 {
+		if len(c.current) == 0 {
+			next, ok := <-c.Bytes
+			if !ok {
+				return read, io.EOF
+			}
+			c.current = next
+		}
+		r := copy(dst, c.current)
+		c.current = c.current[:r]
+		dst = dst[r:]
+		read += r
+	}
+	return read, nil
 }

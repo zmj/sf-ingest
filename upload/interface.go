@@ -11,4 +11,5 @@ type Content struct {
 	Size  uint64
 	Bytes <-chan []byte
 	// checksum
+	current []byte
 }
