@@ -37,7 +37,12 @@ func (s *session) serve(ctx context.Context) {
 	for done := false; !done; {
 		select {
 		case sfAuth := <-s.rcv.SfAuth():
-			s.uploader = upload.NewUploader(sfAuth.Host, sfAuth.AuthID)
+			u, err := upload.NewUploader(sfAuth.Host, sfAuth.AuthID)
+			if err != nil {
+				s.serverError(err)
+				break
+			}
+			s.uploader = u
 		case file := <-s.rcv.Files():
 			s.startFileUpload(ctx, file)
 		case folder := <-s.rcv.Folders():
@@ -45,9 +50,10 @@ func (s *session) serve(ctx context.Context) {
 		case uploadRes := <-s.uploadResults:
 			if uploadRes.err != nil {
 				s.uploadError(uploadRes.ID, uploadRes.err)
-			} else {
-				s.uploadSuccess(uploadRes.ID, uploadRes.sfID)
+				fmt.Printf("upload err %v\n", uploadRes.err)
+				break
 			}
+			s.uploadSuccess(uploadRes.ID, uploadRes.sfID)
 		case <-ctx.Done():
 			done = true
 		}
@@ -119,6 +125,10 @@ func (s *session) uploadSuccess(id uint, sfID string) {
 }
 
 func (s *session) uploadError(id uint, err error) {
-	msg := fmt.Sprintf("Upload failed %v: %v", id, err)
-	s.send.ServerError(protocol.ServerError{msg})
+	err = fmt.Errorf("Upload failed %v: %v", id, err)
+	s.serverError(err)
+}
+
+func (s *session) serverError(err error) {
+	s.send.ServerError(protocol.ServerError{err.Error()})
 }
