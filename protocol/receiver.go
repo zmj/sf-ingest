@@ -29,7 +29,8 @@ func (r *receiver) ReadAll() error {
 	defer close(r.sfAuth)
 	defer close(r.files)
 	defer close(r.folders)
-	var err error // read auth msg
+	// require auth msg first?
+	var err error
 	for err == nil {
 		err = r.readNext()
 	}
@@ -37,7 +38,7 @@ func (r *receiver) ReadAll() error {
 }
 
 func (r *receiver) readNext() error {
-	msg, err := r.readMsg(&File{}, &Folder{})
+	msg, err := r.readMsg(&File{}, &Folder{}, &SfAuth{})
 	if err != nil {
 		return fmt.Errorf("Failed to read message: %v", err)
 	}
@@ -47,6 +48,10 @@ func (r *receiver) readNext() error {
 	}
 	if folder, ok := msg.(*Folder); ok {
 		r.folders <- *folder
+		return nil
+	}
+	if sfAuth, ok := msg.(*SfAuth); ok {
+		r.sfAuth <- *sfAuth
 		return nil
 	}
 	return fmt.Errorf("Unexpected message type")
@@ -64,18 +69,20 @@ func (r *receiver) readFile(file File) error {
 	return nil
 }
 
-func (r *receiver) readMsg(msgTypes ...interface{}) (interface{}, error) {
+func (r *receiver) readMsg(msgTypes ...msgIn) (msgIn, error) {
 	bytes, err := r.readMsgBytes()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read message: %v", err)
 	}
+	fmt.Printf("raw: %v\n", string(bytes))
 	for _, msg := range msgTypes {
 		err = json.Unmarshal(bytes, msg)
-		if err == nil {
-			return msg, nil
+		if err != nil || !msg.valid() {
+			continue
 		}
+		return msg, nil
 	}
-	return nil, fmt.Errorf("Failed to parse message: %v", bytes)
+	return nil, fmt.Errorf("Failed to parse message: %v", string(bytes))
 }
 
 func (r *receiver) readMsgBytes() ([]byte, error) {
@@ -122,6 +129,22 @@ func (r *receiver) readContent(n uint64, c chan<- []byte) error {
 		read += uint64(len(buf))
 	}
 	return nil
+}
+
+type msgIn interface {
+	valid() bool
+}
+
+func (s SfAuth) valid() bool {
+	return s.T == "SfAuth"
+}
+
+func (f File) valid() bool {
+	return f.T == "File"
+}
+
+func (f Folder) valid() bool {
+	return f.T == "Folder"
 }
 
 func (r *receiver) SfAuth() <-chan SfAuth {

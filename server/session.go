@@ -44,9 +44,9 @@ func (s *session) serve(ctx context.Context) {
 			s.startFolderUpload(ctx, folder)
 		case uploadRes := <-s.uploadResults:
 			if uploadRes.err != nil {
-				s.uploadError(uploadRes.item, uploadRes.err)
+				s.uploadError(uploadRes.ID, uploadRes.err)
 			} else {
-				s.uploadSuccess(uploadRes.item, uploadRes.sfID)
+				s.uploadSuccess(uploadRes.ID, uploadRes.sfID)
 			}
 		case <-ctx.Done():
 			done = true
@@ -87,36 +87,38 @@ func (s *session) addLazySfID(id uint) *lazySfID {
 func (s *session) startFileUpload(ctx context.Context, file protocol.File) {
 	parentSfID := s.addLazySfID(file.ParentID)
 	go func() {
-		// err for uploader nil
 		sfID, err := s.uploader.CreateFile(ctx, parentSfID.getValue(), file.Name, upload.Content{file.Size, file.Content})
-		s.uploadResults <- uploadResult{file.Item, sfID, err}
+		s.uploadResults <- uploadResult{file.ID, sfID, err}
 	}()
 }
 
 func (s *session) startFolderUpload(ctx context.Context, folder protocol.Folder) {
-	parentSfID := s.addLazySfID(folder.ParentID)
 	folderSfID := s.addLazySfID(folder.ID)
+	if folder.SfID != "" {
+		folderSfID.setValue(folder.SfID)
+		return
+	}
+	parentSfID := s.addLazySfID(folder.ParentID)
 	go func() {
-		// err for uploader nil
 		sfID, err := s.uploader.CreateFolder(ctx, parentSfID.getValue(), folder.Name)
 		if err == nil {
 			folderSfID.setValue(sfID)
 		}
-		s.uploadResults <- uploadResult{folder.Item, sfID, err}
+		s.uploadResults <- uploadResult{folder.ID, sfID, err}
 	}()
 }
 
 type uploadResult struct {
-	item protocol.Item
+	ID   uint
 	sfID string
 	err  error
 }
 
-func (s *session) uploadSuccess(item protocol.Item, sfID string) {
-	s.send.ItemDone(protocol.ItemDone{item.ID, sfID})
+func (s *session) uploadSuccess(id uint, sfID string) {
+	s.send.ItemDone(protocol.ItemDone{id, sfID})
 }
 
-func (s *session) uploadError(item protocol.Item, err error) {
-	msg := fmt.Sprintf("Upload failed %v (%v): %v", item.Name, item.ID, err)
+func (s *session) uploadError(id uint, err error) {
+	msg := fmt.Sprintf("Upload failed %v: %v", id, err)
 	s.send.ServerError(protocol.ServerError{msg})
 }

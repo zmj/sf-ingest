@@ -8,23 +8,24 @@ type Receiver interface {
 }
 
 type File struct {
-	Item
-	Size    uint64
-	Content <-chan []byte
-}
-
-type Folder struct {
-	Item
-	SfID string
-}
-
-type Item struct {
+	T        string
 	ID       uint
 	ParentID uint
 	Name     string
+	Size     uint64
+	Content  <-chan []byte
+}
+
+type Folder struct {
+	T        string
+	ID       uint
+	ParentID uint
+	Name     string
+	SfID     string
 }
 
 type SfAuth struct {
+	T      string
 	Host   string
 	AuthID string
 }
