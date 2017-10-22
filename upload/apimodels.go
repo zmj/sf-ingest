@@ -17,9 +17,9 @@ type uploadSpec struct {
 }
 
 type uploadResult struct {
-	Error  bool   `json:"error"`
-	ErrMsg string // check this
-	Value  file
+	Error        bool   `json:"error"`
+	ErrorMessage string `json:"errormessage"`
+	Value        []file `json:"value"`
 }
 
 type file struct {

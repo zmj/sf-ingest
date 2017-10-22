@@ -29,35 +29,44 @@ type session struct {
 
 func (s *session) serve(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
+	var rcvErr error
 	go func() {
-		err := s.rcv.ReadAll()
-		fmt.Printf("session end: %v\n", err)
+		rcvErr = s.rcv.ReadAll()
 		cancel()
 	}()
-	for done := false; !done; {
+	for rcvErr == nil {
 		select {
-		case sfAuth := <-s.rcv.SfAuth():
+		case sfAuth, ok := <-s.rcv.SfAuth():
+			if !ok {
+				break
+			}
 			u, err := upload.NewUploader(sfAuth.Host, sfAuth.AuthID)
 			if err != nil {
 				s.serverError(err)
 				break
 			}
 			s.uploader = u
-		case file := <-s.rcv.Files():
+		case file, ok := <-s.rcv.Files():
+			if !ok {
+				break
+			}
 			s.startFileUpload(ctx, file)
-		case folder := <-s.rcv.Folders():
+		case folder, ok := <-s.rcv.Folders():
+			if !ok {
+				break
+			}
 			s.startFolderUpload(ctx, folder)
 		case uploadRes := <-s.uploadResults:
 			if uploadRes.err != nil {
 				s.uploadError(uploadRes.ID, uploadRes.err)
-				fmt.Printf("upload err %v\n", uploadRes.err)
 				break
 			}
 			s.uploadSuccess(uploadRes.ID, uploadRes.sfID)
 		case <-ctx.Done():
-			done = true
 		}
 	}
+	fmt.Printf("session end: %v\n", rcvErr)
+	s.serverError(rcvErr)
 	for range s.uploadResults {
 	}
 }

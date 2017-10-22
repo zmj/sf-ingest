@@ -115,7 +115,7 @@ func (r *receiver) readContent(n uint64, c chan<- []byte) error {
 	}
 	var read uint64
 	for read < n {
-		var toRead uint64 = 4096
+		var toRead uint64 = 4
 		if n-read < toRead {
 			toRead = n - read
 		}
