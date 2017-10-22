@@ -1,5 +1,7 @@
 package protocol
 
+import "github.com/zmj/sf-ingest/buffer"
+
 type Receiver interface {
 	ReadAll() error
 	SfAuth() <-chan SfAuth
@@ -13,7 +15,7 @@ type File struct {
 	ParentID uint
 	Name     string
 	Size     uint64
-	Content  <-chan []byte
+	Content  <-chan *buffer.Buffer
 }
 
 type Folder struct {

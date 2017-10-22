@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
-	"time"
 )
 
 const authIDcookie = "SFAPI_AuthID"
@@ -41,7 +40,8 @@ type uploader struct {
 
 func (u *uploader) CreateFile(ctx context.Context, parentSfID, name string, content Content) (string, error) {
 	defer func() {
-		for range content.Bytes {
+		for b := range content.Bytes {
+			b.Free()
 		}
 	}()
 	if u == nil {
@@ -135,27 +135,22 @@ func (u *uploader) do(req *http.Request, expectedResp interface{}) error {
 	return nil
 }
 
+// combine this and the write half into io.ReaderWriter
 func (c *Content) Read(dst []byte) (int, error) {
 	read := 0
 	for len(dst) > 0 {
-		fmt.Printf("src before %v\n", len(c.current))
-		fmt.Printf("dst before %v\n", len(dst))
-		if len(c.current) == 0 {
+		if c.current == nil || len(c.current.B) == 0 {
+			c.current.Free()
 			next, ok := <-c.Bytes
 			if !ok {
-				fmt.Println("r1")
 				return read, io.EOF
 			}
 			c.current = next
 		}
-		r := copy(dst, c.current)
-		c.current = c.current[r:]
+		r := copy(dst, c.current.B)
+		c.current.B = c.current.B[r:]
 		dst = dst[r:]
 		read += r
-		fmt.Printf("src after %v\n", len(c.current))
-		fmt.Printf("dst after %v\n", len(dst))
-		<-time.After(time.Second)
 	}
-	fmt.Println("r2")
 	return read, nil
 }

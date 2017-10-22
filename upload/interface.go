@@ -1,6 +1,10 @@
 package upload
 
-import "context"
+import (
+	"context"
+
+	"github.com/zmj/sf-ingest/buffer"
+)
 
 type Uploader interface {
 	CreateFile(ctx context.Context, parentSfID, name string, content Content) (string, error)
@@ -9,7 +13,7 @@ type Uploader interface {
 
 type Content struct {
 	Size  uint64
-	Bytes <-chan []byte
+	Bytes <-chan *buffer.Buffer
 	// checksum
-	current []byte
+	current *buffer.Buffer
 }

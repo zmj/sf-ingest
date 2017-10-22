@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/zmj/sf-ingest/buffer"
 )
 
 func NewReader(rdr io.Reader) Receiver {
@@ -13,6 +15,7 @@ func NewReader(rdr io.Reader) Receiver {
 		sfAuth:    make(chan SfAuth),
 		files:     make(chan File),
 		folders:   make(chan Folder),
+		pool:      buffer.NewPool(),
 		msgBuffer: make([]byte, 4096),
 	}
 }
@@ -20,6 +23,7 @@ func NewReader(rdr io.Reader) Receiver {
 type receiver struct {
 	rdr       io.Reader
 	msgBuffer []byte
+	pool      *buffer.Pool
 	sfAuth    chan SfAuth
 	files     chan File
 	folders   chan Folder
@@ -58,7 +62,7 @@ func (r *receiver) readNext() error {
 }
 
 func (r *receiver) readFile(file File) error {
-	c := make(chan []byte) // buffer by num blocks
+	c := make(chan *buffer.Buffer, file.Size/uint64(r.pool.BufferSize())+1)
 	file.Content = c
 	r.files <- file
 	err := r.readContent(file.Size, c)
@@ -74,7 +78,7 @@ func (r *receiver) readMsg(msgTypes ...msgIn) (msgIn, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read message: %v", err)
 	}
-	fmt.Printf("raw: %v\n", string(bytes))
+	// fmt.Printf("raw: %v\n", string(bytes))
 	for _, msg := range msgTypes {
 		err = json.Unmarshal(bytes, msg)
 		if err != nil || !msg.valid() {
@@ -108,25 +112,27 @@ func (r *receiver) readMsgSize() (uint16, error) {
 	return size, err
 }
 
-func (r *receiver) readContent(n uint64, c chan<- []byte) error {
+func (r *receiver) readContent(n uint64, c chan<- *buffer.Buffer) error {
 	defer close(c)
 	if n == 0 {
 		return nil
 	}
 	var read uint64
 	for read < n {
-		var toRead uint64 = 4
-		if n-read < toRead {
-			toRead = n - read
+		buf := r.pool.GetBuffer()
+		toRead := cap(buf.B)
+		if n-read < uint64(toRead) {
+			toRead = int(n - read)
 		}
-		buf := make([]byte, toRead) // buffer pool
+		buf.B = buf.B[:toRead]
 
-		_, err := io.ReadFull(r.rdr, buf)
+		_, err := io.ReadFull(r.rdr, buf.B)
 		if err != nil {
+			buf.Free()
 			return fmt.Errorf("Failed to read content block: %v", err)
 		}
 		c <- buf
-		read += uint64(len(buf))
+		read += uint64(len(buf.B))
 	}
 	return nil
 }
