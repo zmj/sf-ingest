@@ -44,6 +44,7 @@ func (r *receiver) ReadAll() error {
 func (r *receiver) readNext() error {
 	msg, err := r.readMsg(&File{}, &Folder{}, &SfAuth{})
 	if err != nil {
+		fmt.Printf("%v\n", string(r.msgBuffer))
 		return fmt.Errorf("Failed to read message: %v", err)
 	}
 
