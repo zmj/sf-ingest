@@ -65,6 +65,7 @@ func (u *uploader) CreateFile(ctx context.Context, parentSfID, name string, cont
 		return "", fmt.Errorf("Create upload httpReq failed: %v", err)
 	}
 	req.Header.Add("Content-Type", "application/octet-stream")
+	req.Header.Add("Content-Length", fmt.Sprintf("%v", content.Size))
 	var ur uploadResult
 	err = u.do(req, &ur)
 	if ur.Error {
