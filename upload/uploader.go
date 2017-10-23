@@ -109,6 +109,7 @@ func (u *uploader) doApiPost(url string, body, expectedResp interface{}) error {
 	}
 	req.AddCookie(&http.Cookie{Name: authIDcookie, Value: u.authID})
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Content-Length", fmt.Sprintf("%v", len(bodyBytes)))
 	return u.do(req, expectedResp)
 }
 

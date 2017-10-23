@@ -44,10 +44,6 @@ func (r *receiver) ReadAll() error {
 func (r *receiver) readNext() error {
 	msg, err := r.readMsg(&File{}, &Folder{}, &SfAuth{})
 	if err != nil {
-		fmt.Printf("Prev: %v\n", string(r.msgBuffer[:20]))
-		b := make([]byte, 20)
-		io.ReadFull(r.rdr, b)
-		fmt.Printf("Next: %v\n", string(b))
 		return fmt.Errorf("Failed to read message: %v", err)
 	}
 
@@ -82,7 +78,7 @@ func (r *receiver) readMsg(msgTypes ...msgIn) (msgIn, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read message: %v", err)
 	}
-	fmt.Printf("raw: %v\n", string(bytes))
+	//fmt.Printf("raw: %v\n", string(bytes))
 	for _, msg := range msgTypes {
 		err = json.Unmarshal(bytes, msg)
 		if err != nil || !msg.valid() {
@@ -130,7 +126,6 @@ func (r *receiver) readContent(n uint64, c chan<- *buffer.Buffer) error {
 		}
 		buf.B = buf.B[:toRead]
 		rd, err := io.ReadFull(r.rdr, buf.B)
-		fmt.Printf("rd: toRead:%v cap:%v rd:%v len:%v\n", toRead, cap(buf.B), rd, len(buf.B))
 		if err != nil {
 			buf.Free()
 			return fmt.Errorf("Failed to read content block: %v", err)
