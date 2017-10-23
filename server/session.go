@@ -136,6 +136,7 @@ func (s *session) uploadSuccess(id uint, sfID string) {
 
 func (s *session) uploadError(id uint, err error) {
 	err = fmt.Errorf("Upload failed %v: %v", id, err)
+	fmt.Printf("upload err: %v\n", err)
 	s.serverError(err)
 }
 
