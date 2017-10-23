@@ -57,6 +57,9 @@ func (u *uploader) CreateFile(ctx context.Context, parentSfID, name string, cont
 	var us uploadSpec
 	err := u.doApiPost(url, &usr, &us)
 	if err != nil {
+		err = u.doApiPost(url, &usr, &us)
+	}
+	if err != nil {
 		return "", fmt.Errorf("Upload API call failed: %v", err)
 	}
 
