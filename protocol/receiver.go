@@ -124,20 +124,22 @@ func (r *receiver) readContent(n uint64, c chan<- *buffer.Buffer) error {
 	var read uint64
 	for read < n {
 		buf := r.pool.GetBuffer()
+fmt.Printf("buf1: %v\n", len(buf.B))
 		toRead := cap(buf.B)
 		if n-read < uint64(toRead) {
 			toRead = int(n - read)
 		}
 		buf.B = buf.B[:toRead]
-
-		_, err := io.ReadFull(r.rdr, buf.B)
+fmt.Printf("buf2: %v\n", len(buf.B))
+		rd, err := io.ReadFull(r.rdr, buf.B)
 		if err != nil {
 			buf.Free()
 			return fmt.Errorf("Failed to read content block: %v", err)
 		}
 		c <- buf
-		read += uint64(len(buf.B))
+		read += uint64(rd)
 	}
+fmt.Printf("rd %v %v\n", n, read)
 	return nil
 }
 

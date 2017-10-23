@@ -28,7 +28,6 @@ func (b *Buffer) Free() {
 	b.pool.mu.Lock()
 	defer b.pool.mu.Unlock()
 	b.pool.free = append(b.pool.free, b.B)
-	b.B = nil
 }
 
 func (p *Pool) GetBuffer() *Buffer {
