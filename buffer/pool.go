@@ -1,6 +1,7 @@
 package buffer
 
 import "sync"
+import "fmt"
 
 type Buffer struct {
 	B    []byte
@@ -27,6 +28,7 @@ func (b *Buffer) Free() {
 	}
 	b.pool.mu.Lock()
 	defer b.pool.mu.Unlock()
+	fmt.Printf("pool add %v %v\n", len(b.B), cap(b.B))
 	b.pool.free = append(b.pool.free, b.B)
 }
 
@@ -44,6 +46,7 @@ func (p *Pool) GetBuffer() *Buffer {
 	}
 	b := p.free[0]
 	p.free = p.free[1:]
+	fmt.Printf("pool get %v %v\n", len(b), cap(b))
 	return &Buffer{B: b, pool: p}
 }
 
