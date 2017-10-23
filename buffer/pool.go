@@ -20,12 +20,12 @@ func NewPool() *Pool {
 }
 
 func (b *Buffer) Free() {
-	if b == nil || b.B == nil || b.pool == nil {
+	if b == nil || b.pool == nil {
 		return
 	}
 	b.pool.mu.Lock()
 	defer b.pool.mu.Unlock()
-	fmt.Printf("pool add %v %v\n", len(b.B), cap(b.B))
+	fmt.Printf("pool add %v %v\n", len(b.array), cap(b.array))
 	b.pool.free = append(b.pool.free, b.array)
 }
 
