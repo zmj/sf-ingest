@@ -4,13 +4,14 @@ import "sync"
 import "fmt"
 
 type Buffer struct {
-	B    []byte
-	pool *Pool
+	B     []byte
+	array [4096]byte
+	pool  *Pool
 }
 
 type Pool struct {
 	mu   *sync.Mutex
-	free [][]byte
+	free [][4096]byte
 	size int
 }
 
@@ -19,17 +20,13 @@ func NewPool() *Pool {
 }
 
 func (b *Buffer) Free() {
-	if b == nil {
-		return
-	}
-	if b.pool == nil {
-		b.B = nil
+	if b == nil || b.B == nil || b.pool == nil {
 		return
 	}
 	b.pool.mu.Lock()
 	defer b.pool.mu.Unlock()
 	fmt.Printf("pool add %v %v\n", len(b.B), cap(b.B))
-	b.pool.free = append(b.pool.free, b.B)
+	b.pool.free = append(b.pool.free, b.array)
 }
 
 func (p *Pool) GetBuffer() *Buffer {
@@ -44,14 +41,15 @@ func (p *Pool) GetBuffer() *Buffer {
 	if len(p.free) == 0 {
 		return p.new()
 	}
-	b := p.free[0]
+	arr := p.free[0]
 	p.free = p.free[1:]
-	fmt.Printf("pool get %v %v\n", len(b), cap(b))
-	return &Buffer{B: b, pool: p}
+	fmt.Printf("pool get %v %v\n", len(arr), cap(arr))
+	return &Buffer{B: arr[:], array: arr, pool: p}
 }
 
 func (p *Pool) new() *Buffer {
-	return &Buffer{B: make([]byte, 0, p.size), pool: p}
+	var arr [4096]byte
+	return &Buffer{B: arr[:], array: arr, pool: p}
 }
 
 func (p *Pool) BufferSize() int {
